@@ -4,4 +4,6 @@ openai
 python-dotenv
 sentence-transformers
 faiss-cpu
-
+psycopg2-binary
+numpy
+pydantic
