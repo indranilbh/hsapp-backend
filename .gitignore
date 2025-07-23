@@ -1,0 +1,28 @@
+# === Backend ===
+*.pyc
+__pycache__/
+.env
+*.sqlite3
+venv/
+.env.*
+# === OS generated ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === IDEs ===
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# === Python cache ===
+*.pyo
+*.pyd
+*.pdb
+
+# === Misc ===
+*.bak
+*.tmp
