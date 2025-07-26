@@ -940,3 +940,65 @@ def create_homestay(data: HomestayCreate = Body(...)):
 
     finally:
         conn.close()
+
+
+# GET endpoint for fetching homestays with optional country/state/district filters and lazy loading
+@app.get("/homestays")
+def get_homestays(
+    country: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    district: Optional[str] = Query(None),
+    skip: int = 0,
+    limit: int = 20
+):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+
+        # Build dynamic query
+        query = """
+            SELECT h.id, h.name, h.cost, a.country, a.state, a.district, img.url
+            FROM homestays h
+            LEFT JOIN areas a ON h.area_id = a.id
+            LEFT JOIN (
+                SELECT DISTINCT ON (homestay_id) homestay_id, url
+                FROM images ORDER BY homestay_id, rank
+            ) img ON img.homestay_id = h.id
+            WHERE 1=1
+        """
+        params = []
+
+        if country:
+            query += " AND a.country = %s"
+            params.append(country)
+        if state:
+            query += " AND a.state = %s"
+            params.append(state)
+        if district:
+            query += " AND a.district = %s"
+            params.append(district)
+
+        query += " ORDER BY h.id DESC OFFSET %s LIMIT %s"
+        params.extend([skip, limit])
+        
+        cur.execute(query, params)
+        results = cur.fetchall()
+        homestays = [
+            {
+                "id": row[0],
+                "name": row[1],
+                "cost": row[2],
+                "country": row[3],
+                "state": row[4],
+                "district": row[5],
+                "image": row[6],
+            } for row in results
+        ]
+        return {"homestays": homestays}
+
+    except Exception as e:
+        print("Error fetching homestays:", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+    finally:
+        conn.close()
